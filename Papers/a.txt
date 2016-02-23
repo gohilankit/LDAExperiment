@@ -1,0 +1,643 @@
+Predicting Fault-Prone Modules
+Based on Metrics Transitions
+
+Yoshiki Higo1 Kenji Murao1 Shinji Kusumoto1 Katsuro Inoue1
+1Graduate School of Information Science and Technology, Osaka University
+
+{higo,k-murao,kusumoto,inoue}@ist.osaka-u.ac.jp
+
+ABSTRACT
+This paper describe a method for identifying fault-prone modules.
+The method utilizes metrics transitions rather than raw metrics val-
+ues. Metrics transitions are measured from the source code of con-
+secutive versions, which is archived in software repositories. Met-
+rics transitions should be an good indicator of software quality be-
+cause they reﬂect how the software system has evolved. This paper
+exhibits a case study, which is a comparison between metrics transi-
+tions and CK metrics suite. In the case study, the metrics transitions
+could precisely identify fault-prone modules.
+
+1.
+
+INTRODUCTION
+
+Information about how a software system has evolved is use-
+ful for various activity on the system in the future. However, it
+is burdensome and costly to collect and analyze the information
+manually. Developers tend to get overwhelmed to process assigned
+works, they don’t afford to do extra works for the future.
+
+A software repository is a container that includes all products
+and histories of a software system. There are many software tools
+to handle software repositories. By mining software repositories,
+we can easily get any products of the software system at any given
+point in the past. Recently, mining software repositories has re-
+ceived much attention, and it is widely accepted that it provide
+beneﬁcial information for developers or maintainers.
+
+This paper describes a method to identify characteristic features
+of a software system by mining the software repository. The method
+measures how metrics of the modules included in the system have
+changed through the development and maintenance. For example,
+if the metrics of certain modules are up-and-down repeatedly, the
+modules may need more maintenance costs then other modules be-
+cause the modules were changed substantially: we think that sim-
+ple bug ﬁxes or function additions don’t yield up-and-down met-
+rics transitions. The method lets us analyze a software system form
+various viewpoints, and we can easily identify its tendencies and
+attributes.
+
+We believe that the method can be applied in the various contexts
+of software development and maintenance for getting useful infor-
+mation.
+In this paper, especially, we describes the method from
+
+Permission to make digital or hard copies of all or part of this work for
+personal or classroom use is granted without fee provided that copies are
+not made or distributed for proﬁt or commercial advantage and that copies
+bear this notice and the full citation on the ﬁrst page. To copy otherwise, to
+republish, to post on servers or to redistribute to lists, requires prior speciﬁc
+permission and/or a fee.
+DEFECTS’08, July 20, 2008, Seattle, Washington, USA.
+Copyright 2008 ACM 978-1-60558-051-7/08/07 ...$5.00.
+
+the viewpoint of identifying fault-prone modules. Identiﬁcation of
+fault-prone modules is an active research topic, and various kinds
+of techniques have been proposed for that [6, 9]. The identiﬁcation
+lets us know which modules we should pay more attention than
+others, which leads to effective development and maintenance.
+
+Section 2 describes some terms, and Section 3 explains statis-
+tics tools utilized in the proposal technique. Section 4 describes the
+procedure of metrics transitions from the viewpoint of identifying
+fault-prone modules. Section 5 gives a description of the results
+that we applied the method to an open source software system. Fi-
+nally, we conclude our paper with future works in Section 7.
+
+2. TERMS
+
+Here, we deﬁne some terms in the context of the proposal tech-
+
+nique.
+
+Snapshot: A snapshot is a set of source ﬁles needed to construct
+the system just after a check-in is done by a developer. Hence,
+the number of snapshots is equal to the number of check-
+ins. In the method, snapshots are retrieved from repositories
+of version control systems (e.g., CVS [1], Subversion [3]).
+Also, the developer name and the date of the check-ins are
+retrieved as well as actual source code.
+
+Fluctuation: A ﬂuctuation is an indicator representing how a soft-
+ware system has evolved. In the proposal technique, ﬂuctua-
+tions are calculated based on how the metrics of the software
+system have transited through all of the snapshots.
+
+Characteristic Feature: A characteristic feature is a certain ten-
+dency or attribute of a software system. There are various
+kinds of characteristic features in single software system, and
+we believe that elucidating its characteristic features leads us
+to develop or maintain the system in more efﬁcient way. For
+example, we think that it is possible to evaluate the modules,
+the design, and the developers of the software system by us-
+ing the elucidated characteristic features. Especially, in this
+paper, we describe the proposal technique from the viewpoint
+of identifying fault-prone modules.
+
+3. TOOLS FOR FLUCTUATION MEASURE-
+
+MENT
+
+We introduce several statistics tools for measuring ﬂuctuations
+of software metrics. In this introduction, we assume the following
+situation:
+M O = fmo1, mo2,¢¢¢ , moαg: the set of the modules included
+in the target software system where α is the number of them.
+
+M E = fme1, me2,¢¢¢ , meβg: the set of the measured metrics
+
+where β is the number of them.
+
+CT = fct1, ct2,¢¢¢ , ctγg: the set of times when check-ins of any
+of the source ﬁles were done in the past where γ is the num-
+ber of the total check-ins. ct1 is the ﬁrst check-in on the
+repository, and ctγ is the last check-in.
+
+v(i, j, k): the value of metric mej on module moi in time ctk.
+If module moi doesn’t exist in time ctk, we assume that
+v(i, j, k) = null.
+
+3.1 Entropy
+
+Entropy is an indicator to represent the degree of uncertainty
+[7]. Given that ﬂuctuation is uncertainty of metrics, we can use En-
+tropy as an indicator of metrics ﬂuctuations. Entropy is measured
+on every module and every metric, and it is deﬁned as:
+
+0X
+H(i, j) = ¡ γ
+
+pllog2pl
+
+l=1
+
+where:
+† γ
+
+2,¢¢¢ , v
+0
+
+0
+γ0} of met-
+
+0
+ric mej on module moi (1 • γ
+
+0
+is the number of different values {v
+1, v
+0 • γ),
+† pl is the probability that metric mej is v
+0
+l.
+If all values of metric mej on module moi (v(i, j, 1), v(i, j, 2),
+¢¢¢ , v(i, j, γ)) are different from each other, Entropy H(i, j) be-
+comes the maximum value ¡log2
+γ . Meanwhile, if all metric val-
+ues are the same, H(i, j) becomes the minimum value ¡log21 =
+0.
+3.2 Normalized Entropy
+
+1
+
+The maximum value of Entropy depends on the number of check-
+ins, so that it is difﬁcult to compare Entropies between different
+software systems. To solve this problem, we deﬁne Normalized
+Entropy, H
+
+Normalized Entropy is measured on every module and every
+metric because it is derived from Entropy. If we use the same as-
+sumption of Entropy, Normalized Entropy is deﬁned as:
+
+.
+
+0
+
+0
+
+H
+
+(i, j) =
+
+H(i, j)
+¡log2
+1
+γ
+
+3.3 Quartile Deviation
+
+In the ﬁeld of statistics, Quartile Deviation is utilized for rep-
+resenting how data spread. Given that ﬂuctuation is spread of met-
+rics, we can utilize Quartile Deviation1 as an indicator of metrics
+ﬂuctuations.
+
+We assume that, q1(i, j)/q3(i, j) is ﬁrst/third quartile of the sorted
+set of values of metric mej on module moi, Quartile Deviation,
+Qmoi,mej , is deﬁned as:
+
+Q(i, j) =
+
+q3(i, j) ¡ q1(i, j)
+
+2
+
+3.4 Quartile Dispersion Coefﬁcient
+
+Quartile Deviation is greatly affected by the difference of scales
+between metrics because it is an absolute value. Thus, it is difﬁcult
+to compare Quartile Deviation between different metrics. To solve
+0
+this problem, we uses Quartile Dispersion Coefﬁcient, Q
+1Spread of metrics is not normally-distributed. Quartile Deviation
+can be utilized to evaluate nonnormal distribution.
+
+.
+
+Quartile Dispersion Coefﬁcient is measured on every module
+and every metric as well as Quartile Deviation because it is derived
+from Quartile Deviation. If we use the same assumption of Quar-
+tile Deviation and m(i, j) is the median value, Quartile Dispersion
+Coefﬁcient is deﬁned as2:
+0
+Q
+
+(i, j) =
+
+Q(i, j)
+m(i, j)
+
+3.5 Hamming Distance
+
+In this research, Hamming Distance is measured on consecutive
+
+two snapshots, it is deﬁned as:
+
+βX
+
+HD(i, k) =
+
+diff(v(i, j, k ¡ 1), v(i, j, k))
+
+where:
+
+j=1
+
+diff = 1 (v(i, j, k ¡ 1) 6= v(i, j, k))
+
+0 (v(i, j, k ¡ 1) = v(i, j, k))
+
+HD(i, k) represents the number of metrics changed between
+
+consecutive two check-ins, ctk¡1 and ctk, on module moi.
+3.6 Euclidean Distance
+
+Hamming Distance counts only whether each metric value changed
+or not while Euclidean Distance counts how much the values changed.
+In this research, Euclidean Distance is a distance in β-dimensional
+Euclidean space, and it is deﬁned as:
+
+ED(i, k) =q¡¡¡¡!
+
+V(i, k)T
+
+¡¡¡¡!
+V(i, k)
+
+where:
+
+† ¡¡¡!
+v(i, k) = [v(i, 1, k),v(i, 2, k),¢¢¢ ,v(i, β, k)], which is a vec-
+tor representation of the metrics values on module moi at
+time ctk,
+
+† ¡¡¡¡!
+
+v(i, k) ¡ ¡¡¡¡¡¡!
+¡¡¡!
+v(i, k ¡ 1)].
+3.7 Mahalanobis Distance
+
+V(i, k) = [
+
+Fluctuations measured by Euclidean Distance are valid under as-
+sumption that there is no correlation and no scale difference be-
+tween metrics. However, in practice, there are often some cor-
+relations and scale differences between them. Thus, the proposal
+technique utilizes Mahalanobis Distance, which is valid under ex-
+istences of correlations and scale differences.
+
+If we use the same assumption of Euclidean Distance, and Σ
+is the covariance matrix of the whole of the system, Mahalanobis
+Distance is deﬁned as:
+
+M D(i, k) =q¡¡¡¡!
+
+V(i, k)T Σ¡1
+
+¡¡¡¡!
+V(i, k)
+
+4. MEASUREMENT PROCEDURE
+
+Figure 1 illustrates an overview of the proposal technique. The
+method can be applied to only the software systems maintained
+with a revision control system. The process of the method is the
+follows:
+
+STEP1 :Retrieves all of the snapshots
+In this step, all versions of the snapshots are retrieved from the
+software repository to measure metrics. A snapshot is a set of all
+2The deﬁnition is based on the assumption that all metrics values
+are greater than 0. If some values are negative, the median value
+may be 0, or very close to 0. In such case, we have to consider
+another deﬁnition.
+
+Figure 2: Example of change history
+
+STEP4: Analyzes characteristic features
+The ﬂuctuations calculated in the previous step have 2-dimensions:
+for example, Hamming Distance has module and time dimensions.
+By cutting a dimension of the two, we can compute the ﬂuctuation
+of the other dimension. Thus, we can compute various ﬂuctua-
+tions of modules, metrics, and times. Especially, in this paper, we
+describe about ﬂuctuations of modules for identifying fault-prone
+modules.
+
+Module Fluctuation is an indicator how modules have evolved
+through its lifecycle3. The ﬂuctuation of module moi utilizing En-
+tropy (H) is deﬁned as:
+
+M oF (H(i, j)) =
+
+H(i, j)
+
+βX
+
+j=1
+
+Module ﬂuctuations utilizing other statistics tools introduced in
+Section 3 can be deﬁned as well as the module ﬂuctuation utiliz-
+ing Entropy:
+
+† M oF (Q(i, j)) =
+
+Q(i, j),
+
+† M oF (Q(i, j)
+0
+
+) =
+
+0
+Q
+
+(i, j),
+
+† M oF (HD(i, k)) =
+
+HD(i, k),
+
+† M oF (ED(i, k)) =
+
+ED(i, k),
+
+j=1
+
+j=1
+
+βX
+βX
+βX
+γX
+γX
+γX
+
+k=1
+
+k=1
+
+j=1
+
+Figure 1: Overview of the method
+
+† M oF (H(i, j)
+0
+
+) =
+
+0
+
+(i, j),
+
+H
+
+source ﬁles just after at least one source ﬁles was updated by a
+check-in. For example, if there is a software repository including
+change history represented in Figure 2. The method retrieves sets
+of the source ﬁles at four times ct1, ct2, ct3, and ct4.
+
+STEP2: Measures metrics of all of the snapshots
+In this step, the method measures metrics of all versions of the
+retrieved snapshots. It is necessary to select appropriate software
+metrics ﬁtted for the purpose: if the unit of module is class/method,
+we should utilize class/method metrics; if we focus on the cou-
+pling/cohesion of the software system, coupling/cohesion metrics
+should be utilized. In the case study of this paper, we utilizes CK
+metrics suite [5] mainly.
+
+STEP3: Computes ﬂuctuation of the metrics
+The method computes ﬂuctuation of the metrics measured in the
+previous step. As of now, seven kinds of the ﬂuctuations described
+in Section 3 are computed.
+
+† M oF (M D(i, k)) =
+
+M D(i, k).
+
+k=1
+
+3We also deﬁned Metric Fluctuation and Change Fluctuation.
+However we don’t describes about them in this paper because they
+are out of scope of this workshop.
+
+repositoryct1ct2ctgγ・・・・・・all of the snapshotsSTEP1STEP2STEP3STEP4v(1,1,1)v(1,β,1)v(α,1,1)v(α,β,1)・・・・・・・・・・・・・・・ct1v(1,1,γ)v(1,β,γ)v(α,1,γ)v(α,β,γ)・・・・・・・・・・・・・・・Ctγ・・・・・・values of all kinds of metrics on all of the snapshotsfluctuations of the metricsgraphs representing characteristic features01020304050607080901000102030405060708090100MoF(H)MoF(H')MoF(Q')MoF(DH)MoF(DE)MoF(DM)RFCCBOLCOMNOCDITLOCH(i,j):EntropyH’(i,j): Normalized EntropyQ(i,j):Quartile DeviationQ’(i,j): Quartile Dispersion CoefficientHD(i,k):Hamming DistanceED(i,k): Euclidean DistanceMD(i,k): MahalanobisDistancerepositoryrepositoryct1ct2ctgγ・・・・・・all of the snapshotsct1ct2ctgγ・・・・・・all of the snapshotsSTEP1STEP2STEP3STEP4v(1,1,1)v(1,β,1)v(α,1,1)v(α,β,1)・・・・・・・・・・・・・・・ct1v(1,1,γ)v(1,β,γ)v(α,1,γ)v(α,β,γ)・・・・・・・・・・・・・・・Ctγ・・・・・・values of all kinds of metrics on all of the snapshotsv(1,1,1)v(1,β,1)v(α,1,1)v(α,β,1)・・・・・・・・・・・・・・・ct1v(1,1,γ)v(1,β,γ)v(α,1,γ)v(α,β,γ)・・・・・・・・・・・・・・・Ctγ・・・・・・values of all kinds of metrics on all of the snapshotsfluctuations of the metricsgraphs representing characteristic features01020304050607080901000102030405060708090100MoF(H)MoF(H')MoF(Q')MoF(DH)MoF(DE)MoF(DM)RFCCBOLCOMNOCDITLOCH(i,j):EntropyH’(i,j): Normalized EntropyQ(i,j):Quartile DeviationQ’(i,j): Quartile Dispersion CoefficientHD(i,k):Hamming DistanceED(i,k): Euclidean DistanceMD(i,k): MahalanobisDistanceH(i,j):EntropyH’(i,j): Normalized EntropyQ(i,j):Quartile DeviationQ’(i,j): Quartile Dispersion CoefficientHD(i,k):Hamming DistanceED(i,k): Euclidean DistanceMD(i,k): MahalanobisDistanceF1,ver.1F2,ver.1F3,ver.1F4,ver.1F1,ver.2F2,ver.2F3,ver.2F4,ver.2F1,ver.3F4,ver.3F1F2F3F4Source filesCommit timesct1ct2ct3ct4F1,ver.1F2,ver.1F3,ver.1F4,ver.1F1,ver.2F2,ver.2F3,ver.2F4,ver.2F1,ver.3F4,ver.3F1F2F3F4Source filesCommit timesct1ct2ct3ct4After calculating ﬂuctuations, Graph representations are utilized
+for visualizing them. These ﬂuctuations indicate various character-
+istic features of the software system, and they are useful to get rich
+knowledge of the system.
+
+5. CASE STUDY
+5.1 Objective
+
+The objective is to conﬁrm that the method provides useful infor-
+mation for software development and maintenance. Especially, in
+this case study, we applied the method for conﬁrming that classes
+having ﬂuctuations tend to be more fault-prone than other classes.
+5.2 Target
+
+In this case study, the target is an open source software system,
+FreeMind. FreeMind is a mind-mapping software written in Java
+language [2]. Table 1 represents the overview of FreeMind. At the
+ﬁrst snapshot (ct1), the LOC is 3,882, and the number of source
+ﬁles is 67. At the last snapshot (ct225), the LOC is 39,350, and the
+number of source ﬁles is 221.
+5.3 Utilized Metrics
+
+In this case study, we utilized six metrics. Five of them are RFC,
+CBO, LCOM, NOC, DIT, which are members of CK metrics suite
+[5]. The last metric is LOC, which is the simplest and most widely
+utilized metric.
+
+It was experimentally evaluated that CK metrics suite is a good
+indicator to predict fault-prone classes [4, 8]. Hence, it is beneﬁcial
+that the ﬂuctuations of CK metrics suite are compared with its raw
+values.
+5.4 Conﬁguration
+
+We performed this case study in the following procedure.
+
+1. Devides the development history into anterior half and pos-
+
+terior half.
+
+2. Calculates ﬂuctuations from the anterior half history. In this
+case study, we didn’t utilize quartile deviation because there
+are scale differences between each of CK metrics and LOC.
+
+3. Measures the six metrics from the last snapshot of the ante-
+
+rior half history.
+
+4. Identiﬁes bug ﬁxes in the posterior half and counts the num-
+ber of them. In this case study, we identiﬁes the bug ﬁxes
+In the FreeMind project,
+based on commit log messages.
+preﬁx “Bug ﬁx:” is attached to the commit log message if
+the commit is a bug ﬁx. We regarded commits whose log
+
+Table 1: Overview of FreeMind
+Software
+Language
+
+# of Developers
+# of snapshots (γ)
+
+ﬁrst commit time (ct1)
+last commit time (ctγ)
+# of source ﬁles of ct1
+# of source ﬁles of ctγ
+
+LOC of ct1
+LOC of ctγ
+
+FreeMind
+Java
+12
+225
+2000/08/01 19:56:09
+2008/01/13 20:55:35
+67
+221
+3,882
+39,350
+
+message includes both “bug” and “ﬁx” as bug ﬁxes. Also, in
+this study, we regarded bugs in a source ﬁle as bugs in the
+public class deﬁned in the source ﬁle.
+
+5. Sorts FreeMind’s classes in the order of ﬂuctuations and raw
+metrics values. Also, bug coverages are calculated based on
+the orders.
+5.5 Results
+
+The case study was performed on a single PC workstation4. It
+took about 18 minutes to calculate the ﬂuctuations from the snap-
+shots of the posterior half 5.
+
+Figure 3 illustrates the result of bug coverage comparison be-
+tween the class (module) ﬂuctuations and raw metrics values. X
+axis is ranking coverage (%), and Y axis is bug coverage (%).
+Ranking coverage means sorted ﬁles in descending order of their
+class ﬂuctuations, and bug coverage means bugs ratio included in
+the ﬁles of top xx%, which is speciﬁed by the ranking coverage. We
+can see that the ranking based on the class ﬂuctuations could iden-
+tify fault-prone class more precisely than the ranking based on the
+raw metrics values. At the top 20% of all classes, ranking based on
+class ﬂuctuations includes 95% to 100% bugs meanwhile ranking
+based on the raw metrics values includes 22% to 89% bugs.
+5.6 Discussion
+
+The result of this case study shows that class ﬂuctuations can
+be a good indicator to predict fault-prone classes as well or bet-
+ter than raw software metrics. To conﬁrm that this is true in other
+software systems, we applied the proposal technique to other two
+open source software systems, JHotDraw and HelpSetMaker. In
+the case of JHotDraw (HelpSetMaker), ranking based on class
+ﬂuctuations includes 44% (60%) to 59% (75%) bugs meanwhile
+ranking based on the raw metrics values includes 10% (28%) to
+48% (63%) bugs at the top 20% of all classes. In the applications
+of the both systems, the class ﬂuctuations had better bug coverages
+than raw metrics values as well as FreeMind. However, calculat-
+ing module ﬂuctuations requires much more time than measuring
+metrics from a single version of the source code. In this case study,
+it took requires 18 minutes to calculate class ﬂuctuations from sets
+of snapshots of FreeMind, which was stored in the local storage in
+advance.
+
+6. RELATED WORKS
+
+Williams et al. reported that checking return values of methods
+is an effective way to predict fault occurrences in the future based
+on their experiments [9]. Also, they applied the technique to the
+source code of the latest version with and without the information
+stored in the CVS repository of the software system, and compared
+the results. The results showed that the checking with the CVS
+information can predict fault occurrences more precisely than the
+checking without the CVS information.
+
+Ostrand et al. predicts the location and number of faults occurred
+in the next release based on information stored in CVS repository
+and bug database [6]. They constructed a negative binomial regres-
+sion model from the information, and experimentally evaluated that
+the model can predict more precisely than the prediction based on
+LOC. Also, they reported that it is possible to suggest which source
+ﬁles should be paid attention in the test phase.
+
+4CPU: Core2Duo 1.86GHz, Memory: 2GB
+5Source ﬁles of all snapshots were extracted in the local storage of
+the workstation in advance.
+
+Figure 3: Bug Coverage Comparison between Class (Module) Fluctuations and Raw Metric Values
+
+[5] S. Chidamber and C. Kemerer. A Metric Suite for
+
+Object-Oriented Design. IEEE Transactions on Software
+Engineering, 25(5):476–493, Jun 1994.
+
+[6] T. J. Ostrand, E. J. Weyuker, and R. M. Bell. Predicting the
+
+location and number of faults in large software systems. IEEE
+Transactions on Software Engineering, 31(4):340–355, Apr
+2005.
+
+[7] C. E. Shannon. A mathematical theory of communication. The
+
+Bell System Technical Journal, 27:379–423, 623–656, 1948.
+[8] R. Subramanyam and M. S. Krishnan. Empirical Analysis of
+
+CK Metrics for Object-Oriented Design Complexity:
+Implications for Software Defects. IEEE Transactions on
+Software Engineering, 29(4):297–310, Apr 2003.
+
+[9] C. C. Williams and J. K. Hollingworth. Automatic Mining of
+
+Source Code Repositories to Improve Bug Finding
+Techniques. IEEE Transactions on Software Engineering,
+31(6):466–480, Jun 2005.
+
+7. CONCLUSION
+
+In this paper, we proposed a method for analyzing characteristic
+features of a software system based on metrics transitions. Also,
+this paper describes the result of identiﬁcation of fault-prone mod-
+ules. This research is work-in-progress, and we have many things
+to do, the followings are the some of them: (1)we have to deﬁne
+details of the method, some heuristics may be introduced to the
+method; (2)we have to investigate attributes of the ﬂuctuations; We
+think that the ﬂuctuations are very much correlated with the number
+of changed or number of lines changes of the source code over revi-
+sions; (3)we are going to enhance the tool to handle other program-
+ming languages, and apply the method to various software systems;
+(4)we are going to apply the method to analyze other feathers in
+the different contexts; (5)it may be interesting to combine multiple
+ﬂuctuations using machine learning or linear regression algorithms
+to predicut faults.
+
+Acknowledgment
+This work is being conducted as a part of Stage Project, the Devel-
+opment of Next Generation IT Infrastructure, supported by Min-
+istry of Education, Culture, Sports, Science and Technology.
+
+8. REFERENCES
+[1] CVS. http://ximbiot.com/cvs/wiki/.
+[2] FreeMind. http://freemind.sourceforge.net/
+
+wiki/index.php/Main_Page.
+
+[3] Subversion. http://subversion.tigris.org/.
+[4] V. R. Basili, L. C. Briand, and W. L. Melo. A Validation of
+
+Object-Oriented Design Metrics as Quality Indicators. IEEE
+Transactions on Software Engineering, 22(10):751–761, Oct
+1996.
+
+01020304050607080901000102030405060708090100MoF(H)MoF(H')MoF(Q')MoF(DH)MoF(DE)MoF(DM)RFCCBOLCOMNOCDITLOCBug coverage (%)Ranking coverage (%)01020304050607080901000102030405060708090100MoF(H)MoF(H')MoF(Q')MoF(DH)MoF(DE)MoF(DM)RFCCBOLCOMNOCDITLOCBug coverage (%)Ranking coverage (%)01020304050607080901000102030405060708090100MoF(H)MoF(H')MoF(Q')MoF(DH)MoF(DE)MoF(DM)RFCCBOLCOMNOCDITLOCBug coverage (%)Ranking coverage (%)
